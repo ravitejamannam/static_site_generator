@@ -40,27 +40,47 @@ def markdown_to_html_node(markdown):
             return "paragraph"
 
     def text_to_children(text):
-        # Inline markdown parsing for bold, italic, and code
+        # Inline markdown parsing for bold, italic, code, and links
         children = []
         while text:
-            if "**" in text:
+            # Handle links [text](url)
+            if "[" in text and "(" in text and text.find("[") < text.find("("):
+                before, _, rest = text.partition("[")
+                if before:
+                    children.append(HTMLNode(value=before))
+                link_text, _, rest = rest.partition("](")
+                url, _, text = rest.partition(")")
+                children.append(HTMLNode(tag="a", children=[HTMLNode(value=link_text)], props={"href": url}))
+            # Handle images ![alt](src)
+            elif "![" in text and "(" in text and text.find("![") < text.find("("):
+                before, _, rest = text.partition("![")
+                if before:
+                    children.append(HTMLNode(value=before))
+                alt_text, _, rest = rest.partition("](")
+                src, _, text = rest.partition(")")
+                children.append(HTMLNode(tag="img", props={"src": src, "alt": alt_text}))
+            # Handle bold
+            elif "**" in text:
                 before, _, rest = text.partition("**")
                 if before:
                     children.append(HTMLNode(value=before))
                 bold_text, _, text = rest.partition("**")
                 children.append(HTMLNode(tag="b", children=[HTMLNode(value=bold_text)]))
+            # Handle italic
             elif "_" in text:
                 before, _, rest = text.partition("_")
                 if before:
                     children.append(HTMLNode(value=before))
                 italic_text, _, text = rest.partition("_")
                 children.append(HTMLNode(tag="i", children=[HTMLNode(value=italic_text)]))
+            # Handle inline code
             elif "`" in text:
                 before, _, rest = text.partition("`")
                 if before:
                     children.append(HTMLNode(value=before))
                 code_text, _, text = rest.partition("`")
                 children.append(HTMLNode(tag="code", children=[HTMLNode(value=code_text)]))
+            # Regular text
             else:
                 children.append(HTMLNode(value=text))
                 break

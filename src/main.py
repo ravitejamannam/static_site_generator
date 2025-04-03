@@ -1,39 +1,28 @@
+# src/main.py
 import os
-
-# Get the absolute path of the project root (one level above src/)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# Define absolute paths
-static_dir = os.path.join(BASE_DIR, "static")
-public_dir = os.path.join(BASE_DIR, "public")
-
-def copy_static(src, dest):
-    if not os.path.exists(src):
-        print(f"Error: Source directory '{src}' does not exist.")
-        return
-
-    print(f"Copying files from {src} to {dest}...")
-
-    # Ensure destination is clean
-    if os.path.exists(dest):
-        import shutil
-        shutil.rmtree(dest)
-    
-    os.makedirs(dest, exist_ok=True)
-
-    for item in os.listdir(src):
-        src_path = os.path.join(src, item)
-        dest_path = os.path.join(dest, item)
-
-        if os.path.isdir(src_path):
-            os.makedirs(dest_path, exist_ok=True)
-            copy_static(src_path, dest_path)
-        else:
-            shutil.copy(src_path, dest_path)
-            print(f"Copied: {src_path} -> {dest_path}")
+import shutil
+from generate_page import generate_page
 
 def main():
-    copy_static(static_dir, public_dir)
+    # Delete anything in the public directory
+    if os.path.exists("public"):
+        shutil.rmtree("public")
+    
+    # Create public directory
+    os.makedirs("public", exist_ok=True)
+    
+    # Copy all static files from static to public
+    if os.path.exists("static"):
+        for item in os.listdir("static"):
+            src = os.path.join("static", item)
+            dst = os.path.join("public", item)
+            if os.path.isdir(src):
+                shutil.copytree(src, dst)
+            else:
+                shutil.copy2(src, dst)
+    
+    # Generate page from content/index.md
+    generate_page("content/index.md", "template.html", "public/index.html")
 
 if __name__ == "__main__":
     main()
