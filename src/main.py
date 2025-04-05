@@ -1,6 +1,6 @@
 import os
 import shutil
-from generate_page import generate_page
+from generate_pages_recursive import generate_pages_recursive
 
 def main():
     # Delete public directory if it exists
@@ -19,23 +19,11 @@ def main():
     else:
         print(f"❌ Directory {static_dir} not found!")
 
-    # Generate markdown pages
+    # Generate markdown pages recursively
     content_dir = "content"
     if os.path.exists(content_dir):
-        print(f"✅ Generating pages from {content_dir}")
-        for root, _, files in os.walk(content_dir):
-            for file in files:
-                if file.endswith(".md"):
-                    from_path = os.path.join(root, file)
-
-                    # Create relative path inside `public/`
-                    relative_path = os.path.relpath(root, content_dir)
-                    dest_dir = os.path.join("public", relative_path)
-                    os.makedirs(dest_dir, exist_ok=True)
-
-                    # Generate the corresponding HTML file
-                    dest_path = os.path.join(dest_dir, "index.html")
-                    generate_page(from_path, "template.html", dest_path)
+        print(f"✅ Generating pages recursively from {content_dir}")
+        generate_pages_recursive(content_dir, "template.html", "public")
     else:
         print(f"❌ Directory {content_dir} not found!")
 
